@@ -1,26 +1,54 @@
-import React, { useState } from 'react'
+import React, { useEffect } from 'react'
+import { useState } from 'react';
+import { useParams } from 'react-router-dom';
 import axios from 'axios';
-import 'bootstrap/dist/css/bootstrap.min.css';
+import { useNavigate } from 'react-router-dom';
 
-export default function AddProducts() {
+export default function EditProduct() {
+  const { id } = useParams();
+  const navigate=useNavigate()
+
   const [formData, setFormData] = useState({
-    title: "",
-    Description: "",
-    About_item: "",
-    quantity: "",
-    price: "",
-    category: ""
-  });
-
-  const [file, setFile] = useState(null);
-
-  function handleChange(e) {
+      title: "",
+      Description: "",
+      About_item: "",
+      quantity: "",
+      price: "",
+      category: ""
+    });
+    const [file, setFile] = useState(null);
+    function handleChange(e) {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
     });
   }
 
+  async function getProduct(){
+      try{
+        const result=await axios.get(`https://ecomflask.duckdns.org/api/admin/item/${id}`,
+          {
+            withCredentials:true
+          }
+        )
+        console.log(result.data.product)
+        const p=result.data.product
+        setFormData({
+             title: p.itemname,
+      Description: p.item_desc,
+      About_item: p.item_about,
+      quantity: p.quantity,
+      price: p.price,
+      category: p.category
+        });
+      }
+      catch(error){
+        console.log(error.response?.data || error.message);
+      }
+  }
+  useEffect(()=>{
+    getProduct();
+  },[])
   async function handleSubmit(e) {
     e.preventDefault();
 
@@ -35,8 +63,13 @@ export default function AddProducts() {
       data.append("category", formData.category);
       data.append("file", file);
 
-      const result = await axios.post(
-        "https://ecomflask.duckdns.org/api/admin/add-item",
+      if(file){
+        data.append("file",file);
+      }
+
+       
+      const result = await axios.put(
+        `https://ecomflask.duckdns.org/api/admin/update-item/${id}`,
         data,
         {
           withCredentials: true,
@@ -44,17 +77,21 @@ export default function AddProducts() {
             "Content-Type": "multipart/form-data"
           }
         }
-      );
+      )
+      alert("updated successfully");
+      navigate("/admin-products")
+
 
       console.log(result.data);
-      alert("Product Added Successfully");
+      alert("Product updated Successfully");
     } catch (error) {
-      console.log(error);
+     console.log(error.response?.data || error.message);
     }
   }
 
   return (
-    <div className="container mt-5">
+    <div>
+      <div className="container mt-5">
       <div className="row justify-content-center">
         <div className="col-md-8">
 
@@ -152,7 +189,7 @@ export default function AddProducts() {
                   type="submit"
                   className="btn btn-primary w-100"
                 >
-                  Add Product
+                  Update Product
                 </button>
 
               </form>
@@ -163,5 +200,8 @@ export default function AddProducts() {
         </div>
       </div>
     </div>
-  );
+  
+
+    </div>
+  )
 }
