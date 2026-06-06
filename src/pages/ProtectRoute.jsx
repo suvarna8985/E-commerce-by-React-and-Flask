@@ -5,7 +5,7 @@ export default function ProtectRoute({children}) {
     const navigate=useNavigate()
     const user=JSON.parse(localStorage.getItem("admin"))
 
-    return admin?children:navigate("/login")
+    return user?children:navigate("/login")
     // if(!user){
     //     return navigate("/loginpage")
     // }
